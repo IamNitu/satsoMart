@@ -1,17 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:sasto_mart/core/adaptive/adaptive.dart';
+import 'package:sasto_mart/core/api/api_endpoints.dart';
+import 'package:sasto_mart/features/home/api/products_api.dart';
+import 'package:sasto_mart/features/home/models/product_model.dart';
 
 class HomeProductsGrid extends StatefulWidget {
-  final List<Map<String, dynamic>> products;
-
-  const HomeProductsGrid({super.key, required this.products});
+  const HomeProductsGrid({super.key});
 
   @override
   State<HomeProductsGrid> createState() => _HomeProductsGridState();
 }
 
 class _HomeProductsGridState extends State<HomeProductsGrid> {
+  final ProductsApi _productsApi =ProductsApi();
+  List<Product> _products =[];
+  bool _isLoading =true;
+  String? _error;
   final Set<int> _favoriteIndices = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async{
+    setState(() {
+      _isLoading =true;
+      _error =null;
+    });
+    try{
+      final response = await _productsApi.getProducts();
+      setState(() {
+        _products = response.products;
+        _isLoading =false;
+      });
+    }catch(e){
+      _error =e.toString();
+      _isLoading=false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +113,7 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: widget.products.length,
+                itemCount: _products.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: context.wp(2.0),
@@ -93,7 +121,7 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                   childAspectRatio: context.isSmallScreen ? 0.68 : 0.70,
                 ),
                 itemBuilder: (context, index) {
-                  final product = widget.products[index];
+                  final product = _products[index];
                   final isFavorite = _favoriteIndices.contains(index);
 
                   return Container(
@@ -130,14 +158,41 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                     ),
                                   ),
                                   child: Center(
-                                    child: Icon(
-                                      product["icon"] as IconData,
-                                      size: context.sp(44),
-                                      color: AppColors.navyBlue.withValues(alpha: 0.85),
-                                    ),
+                                    child: product.featuredImage != null && product.featuredImage!.isNotEmpty
+                                        ? Image.network(
+                                            ApiEndpoints.imageUrl(product.featuredImage),
+                                            fit: BoxFit.contain,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            loadingBuilder: (context, child, loadingProgress) {
+                                              if (loadingProgress == null) return child;
+                                              return Center(
+                                                child: SizedBox(
+                                                  width: context.wp(5),
+                                                  height: context.wp(5),
+                                                  child: const CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: AppColors.accentBlue,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Icon(
+                                                Icons.image_not_supported_outlined,
+                                                size: context.sp(36),
+                                                color: AppColors.textLight,
+                                              );
+                                            },
+                                          )
+                                        : Icon(
+                                            Icons.shopping_bag_outlined,
+                                            size: context.sp(36),
+                                            color: AppColors.navyBlue,
+                                          ),
                                   ),
                                 ),
-                                if (product["discount"] != null)
+                                if (product.discountPrice != null)
                                   Positioned(
                                     top: context.hp(1.0),
                                     left: context.wp(2.5),
@@ -158,7 +213,7 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                         ],
                                       ),
                                       child: Text(
-                                        product["discount"] as String,
+                                        product.discountPrice.toString(),
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: context.sp(10),
@@ -229,29 +284,29 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                           ),
                                           SizedBox(width: context.wp(0.8)),
                                           Text(
-                                            product["rating"] as String,
+                                            product.ratings.toString(),
                                             style: TextStyle(
                                               fontSize: context.sp(11),
                                               fontWeight: FontWeight.w700,
                                               color: AppColors.textDark,
                                             ),
                                           ),
-                                          if (product["reviews"] != null) ...[
-                                            SizedBox(width: context.wp(0.8)),
-                                            Text(
-                                              product["reviews"] as String,
-                                              style: TextStyle(
-                                                fontSize: context.sp(10),
-                                                color: AppColors.textLight,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ],
+                                          // if (product["reviews"] != null) ...[
+                                          //   SizedBox(width: context.wp(0.8)),
+                                          //   Text(
+                                          //     product["reviews"] as String,
+                                          //     style: TextStyle(
+                                          //       fontSize: context.sp(10),
+                                          //       color: AppColors.textLight,
+                                          //       fontWeight: FontWeight.w400,
+                                          //     ),
+                                          //   ),
+                                          // ],
                                         ],
                                       ),
                                       SizedBox(height: context.hp(0.4)),
                                       Text(
-                                        product["name"] as String,
+                                        product.name,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -271,9 +326,9 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          if (product["oldPrice"] != null)
+                                          if (product.price != null)
                                             Text(
-                                              product["oldPrice"] as String,
+                                              product.price.toString(),
                                               style: TextStyle(
                                                 fontSize: context.sp(10.5),
                                                 color: AppColors.textLight,
@@ -282,7 +337,7 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                               ),
                                             ),
                                           Text(
-                                            product["price"] as String,
+                                            product.discountPrice.toString(),
                                             style: TextStyle(
                                               fontSize: context.sp(14.5),
                                               fontWeight: FontWeight.w800,
@@ -300,7 +355,7 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  "Added ${product['name']} to cart!",
+                                                  "Added ${product.name} to cart!",
                                                   style: const TextStyle(fontWeight: FontWeight.w600),
                                                 ),
                                                 backgroundColor: AppColors.navyBlue,
