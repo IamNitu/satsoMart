@@ -46,5 +46,5 @@ app.*.map.json
 
 # Ignore markdown files folder
 /md_files/
-lib/features/home/
-
+.env
+lib/features/chatbot/
