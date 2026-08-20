@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasto_mart/features/authentication/bloc/login_bloc.dart';
 import 'package:sasto_mart/features/authentication/bloc/signup_bloc.dart';
 import 'package:sasto_mart/features/authentication/views/login_page.dart';
-void main() {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName : ".env");
   runApp(const MyApp());
 }
 
@@ -19,7 +22,22 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: LoginPage()
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFFF4F6F8),
+        ),
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: MediaQuery.of(context).textScaler.clamp(
+                minScaleFactor: 1.0,
+                maxScaleFactor: 1.2,
+              ),
+            ),
+            child: child!,
+          );
+        },
+        home: const LoginPage(),
       ),
     );
   }

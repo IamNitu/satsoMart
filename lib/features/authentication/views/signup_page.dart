@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sasto_mart/core/adaptive/adaptive.dart';
 import 'package:sasto_mart/features/authentication/bloc/signup_bloc.dart';
 
 class SignupPage extends StatefulWidget {
@@ -10,27 +11,24 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  // Refined Solid Color Palette (Matches Login Page)
-  final Color navyBlue = const Color(0xFF0F2041);
-  final Color accentBlue = const Color(0xFF2563EB);
-  final Color backgroundWhite = const Color(0xFFF4F6F8);
-  final Color textDark = const Color(0xFF111827);
-  final Color textGrey = const Color(0xFF6B7280);
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final headerHeight = context.hp(context.isSmallScreen ? 32 : 35);
+    final cardOffset = context.hp(context.isSmallScreen ? -5 : -6);
 
     return Scaffold(
-      backgroundColor: backgroundWhite,
+      backgroundColor: AppColors.backgroundWhite,
       body: SingleChildScrollView(
         child: Column(
           children: [
             // 1. Solid Navy Header
             Container(
-              height: size.height * 0.35,
+              height: headerHeight,
               width: double.infinity,
-              color: navyBlue,
+              color: AppColors.navyBlue,
               child: Stack(
                 children: [
                   // Subtle geometric accents
@@ -42,48 +40,53 @@ class _SignupPageState extends State<SignupPage> {
                       height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha:0.03),
+                        color: Colors.white.withValues(alpha: 0.03),
                       ),
                     ),
                   ),
                   Positioned(
-                    top: size.height * 0.10,
-                    left: 32,
+                    top: context.hp(context.isSmallScreen ? 6.5 : 8.0),
+                    left: context.wp(7),
+                    right: context.wp(7),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Back button (useful for navigation back to login)
+                        // Back button
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(context.wp(2.2)),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha:0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.arrow_back_ios_new_rounded,
                               color: Colors.white,
-                              size: 20,
+                              size: context.sp(18),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          "Create Account",
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
+                        SizedBox(height: context.hp(1.6)),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Create Account",
+                            style: TextStyle(
+                              fontSize: context.sp(28),
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: context.hp(0.5)),
                         Text(
                           "Join SastoMart today!",
                           style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white.withValues(alpha:0.7),
+                            fontSize: context.sp(14),
+                            color: Colors.white.withValues(alpha: 0.75),
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -93,95 +96,84 @@ class _SignupPageState extends State<SignupPage> {
                 ],
               ),
             ),
-            
-            // 2. The Floating White Card
+
+            // 2. The Adaptive Floating Card
             Transform.translate(
-              offset: const Offset(0, -60),
+              offset: Offset(0, cardOffset),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: navyBlue.withValues(alpha:0.08),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(32),
+                padding: context.isTablet
+                    ? EdgeInsets.symmetric(horizontal: context.wp(20))
+                    : AdaptiveSize.horizontalPadding(context, percent: 5.5),
+                child: AdaptiveCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildSolidTextField(
+                      _buildAdaptiveTextField(
                         label: "Full Name",
+                        hint: "John Doe",
                         icon: Icons.person_outline,
-                        onChanged: (value){
+                        onChanged: (value) {
                           context.read<SignupBloc>().add(SignupFullnameChanged(value));
-                        }
+                        },
                       ),
-                      const SizedBox(height: 20),
-                      _buildSolidTextField(
+                      SizedBox(height: context.hp(1.8)),
+                      _buildAdaptiveTextField(
                         label: "Email Address",
+                        hint: "yourname@example.com",
                         icon: Icons.email_outlined,
-                        onChanged: (value){
+                        keyboardType: TextInputType.emailAddress,
+                        onChanged: (value) {
                           context.read<SignupBloc>().add(SignupEmailChanged(value));
-                        }
+                        },
                       ),
-                      const SizedBox(height: 20),
-                      _buildSolidTextField(
+                      SizedBox(height: context.hp(1.8)),
+                      _buildAdaptiveTextField(
                         label: "Password",
+                        hint: "••••••••",
                         icon: Icons.lock_outline_rounded,
                         isPassword: true,
-                        onChanged: (value){
+                        obscureText: _obscurePassword,
+                        onToggleVisibility: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                        onChanged: (value) {
                           context.read<SignupBloc>().add(SignupPasswordChanged(value));
-                        }
+                        },
                       ),
-                      const SizedBox(height: 20),
-                      _buildSolidTextField(
+                      SizedBox(height: context.hp(1.8)),
+                      _buildAdaptiveTextField(
                         label: "Confirm Password",
+                        hint: "••••••••",
                         icon: Icons.lock_outline_rounded,
                         isPassword: true,
-                        onChanged: (value){
+                        obscureText: _obscureConfirmPassword,
+                        onToggleVisibility: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                        onChanged: (value) {
                           context.read<SignupBloc>().add(SignupConfirmPasswordChanged(value));
-                        }
+                        },
                       ),
-                      
-                      const SizedBox(height: 36),
-                      
-                      // 3. Solid Accent Blue Button
-                      SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            print("${context.read<SignupBloc>().state.fullname}");
-                            print("${context.read<SignupBloc>().state.email}");
-                            print("${context.read<SignupBloc>().state.password}");
-                            print("${context.read<SignupBloc>().state.confirmPassword}");
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: accentBlue,
-                            foregroundColor: Colors.white,
-                            elevation: 0, // Perfectly flat modern look
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                      SizedBox(height: context.hp(2.8)),
+
+                      // 3. Adaptive Sign Up Button
+                      AdaptiveButton(
+                        text: "Sign Up",
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Account created successfully!"),
+                              backgroundColor: AppColors.success,
                             ),
-                          ),
-                          child: const Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                      
-                      const SizedBox(height: 32),
-                      
+                      SizedBox(height: context.hp(2.5)),
+
                       // Login Prompt
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -189,26 +181,26 @@ class _SignupPageState extends State<SignupPage> {
                           Text(
                             "Already have an account? ",
                             style: TextStyle(
-                              color: textGrey,
+                              color: AppColors.textGrey,
                               fontWeight: FontWeight.w500,
-                              fontSize: 14,
+                              fontSize: context.sp(13.5),
                             ),
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pop(context); // Go back to login
+                              Navigator.pop(context);
                             },
                             child: Text(
                               "Sign In",
                               style: TextStyle(
-                                color: accentBlue,
+                                color: AppColors.accentBlue,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: context.sp(13.5),
                               ),
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -220,11 +212,14 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  // Minimalist, solid-color text fields
-  Widget _buildSolidTextField({
+  Widget _buildAdaptiveTextField({
     required String label,
+    required String hint,
     required IconData icon,
     bool isPassword = false,
+    bool obscureText = false,
+    VoidCallback? onToggleVisibility,
+    TextInputType keyboardType = TextInputType.text,
     Function(String)? onChanged,
   }) {
     return Column(
@@ -233,39 +228,55 @@ class _SignupPageState extends State<SignupPage> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: context.sp(13.5),
             fontWeight: FontWeight.w600,
-            color: textDark,
+            color: AppColors.textDark,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: context.hp(0.6)),
         TextField(
-          obscureText: isPassword,
           onChanged: onChanged,
+          obscureText: isPassword ? obscureText : false,
+          keyboardType: keyboardType,
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: textDark,
-            fontSize: 16,
+            color: AppColors.textDark,
+            fontSize: context.sp(14.5),
           ),
           decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: AppColors.textLight,
+              fontSize: context.sp(13.5),
+            ),
             filled: true,
-            fillColor: Colors.white,
-            prefixIcon: Icon(icon, color: textGrey, size: 22),
-            suffixIcon: isPassword 
-                ? Icon(Icons.visibility_off_outlined, color: textGrey, size: 20)
+            fillColor: AppColors.backgroundWhite,
+            prefixIcon: Icon(icon, color: AppColors.textGrey, size: context.sp(20)),
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      color: AppColors.textGrey,
+                      size: context.sp(20),
+                    ),
+                    onPressed: onToggleVisibility,
+                  )
                 : null,
-            contentPadding: const EdgeInsets.symmetric(vertical: 16), // Slightly tighter padding for 4 fields
+            contentPadding: EdgeInsets.symmetric(
+              vertical: context.hp(context.isSmallScreen ? 1.3 : 1.5),
+              horizontal: context.wp(3.5),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(color: AppColors.borderLight),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(color: AppColors.borderLight),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: accentBlue, width: 2),
+              borderSide: const BorderSide(color: AppColors.accentBlue, width: 1.8),
             ),
           ),
         ),
