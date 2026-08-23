@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sasto_mart/core/adaptive/adaptive.dart';
-import 'package:sasto_mart/features/home/api/products_api.dart';
-import 'package:sasto_mart/features/home/models/product_model.dart';
 import 'package:sasto_mart/features/home/views/main_navigation_shell.dart';
 import 'package:sasto_mart/features/home/widgets/home_app_bar.dart';
 import 'package:sasto_mart/features/home/widgets/home_search_bar.dart';
 import 'package:sasto_mart/features/home/widgets/home_promo_banner.dart';
-import 'package:sasto_mart/features/home/widgets/home_categories_section.dart';
 import 'package:sasto_mart/features/home/widgets/home_products_grid.dart';
 
 class HomePage extends StatelessWidget {
@@ -26,8 +23,6 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  int _selectedCategoryIndex = 0;
-
   // final List<Map<String, dynamic>> _categories = const [
   //   {"name": "All", "icon": Icons.grid_view_rounded},
   //   {"name": "Electronics", "icon": Icons.devices_rounded},
