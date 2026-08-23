@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasto_mart/core/adaptive/adaptive.dart';
 import 'package:sasto_mart/core/api/api_endpoints.dart';
+import 'package:sasto_mart/features/cart/bloc/cart_bloc.dart';
 import 'package:sasto_mart/features/home/api/products_api.dart';
 import 'package:sasto_mart/features/home/models/product_model.dart';
+import 'package:sasto_mart/features/home/views/product_details_page.dart';
 
 class HomeProductsGrid extends StatefulWidget {
   const HomeProductsGrid({super.key});
@@ -124,25 +127,34 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                   final product = _products[index];
                   final isFavorite = _favoriteIndices.contains(index);
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.cardWhite,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.borderLight.withValues(alpha: 0.8),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.navyBlue.withValues(alpha: 0.05),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailsPage(product: product),
                         ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Column(
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.cardWhite,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.borderLight.withValues(alpha: 0.8),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.navyBlue.withValues(alpha: 0.05),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
@@ -352,6 +364,17 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                                         borderRadius: BorderRadius.circular(10),
                                         child: InkWell(
                                           onTap: () {
+                                            if(product.stock <=0){
+                                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text("Sorry, this item is out of stock!"),
+                                                backgroundColor: AppColors.error,
+                                                behavior: SnackBarBehavior.floating,
+                                                duration: Duration(seconds: 1),),
+                                              );
+                                              return;
+                                            }context.read<CartBloc>().add(AddToCart(product,quantity: 1));
+                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
                                                 content: Text(
@@ -387,6 +410,7 @@ class _HomeProductsGridState extends State<HomeProductsGrid> {
                         ],
                       ),
                     ),
+                    )
                   );
                 },
               );
