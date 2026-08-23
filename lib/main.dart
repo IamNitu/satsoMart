@@ -4,6 +4,7 @@ import 'package:sasto_mart/features/authentication/bloc/login_bloc.dart';
 import 'package:sasto_mart/features/authentication/bloc/signup_bloc.dart';
 import 'package:sasto_mart/features/authentication/views/login_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:sasto_mart/features/cart/bloc/cart_bloc.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName : ".env");
@@ -18,7 +19,8 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context)=> LoginBloc()),
-        BlocProvider(create: (context)=>SignupBloc())
+        BlocProvider(create: (context)=>SignupBloc()),
+        BlocProvider(create: (context)=>CartBloc()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
